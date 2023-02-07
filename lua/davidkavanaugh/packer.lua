@@ -51,5 +51,24 @@ return require('packer').startup(function(use)
 
   use("folke/zen-mode.nvim")
   use("github/copilot.vim")
+  use 'christoomey/vim-tmux-navigator'
+
+  use 'tpope/vim-surround'
+  use {
+      "windwp/nvim-autopairs",
+      config = function() require("nvim-autopairs").setup {} end
+  }
+
+  use 'junegunn/vim-peekaboo'
+  use {
+      'nvim-tree/nvim-tree.lua',
+      requires = {
+          'nvim-tree/nvim-web-devicons', -- optional, for file icons
+      }
+  }
+  use 'jose-elias-alvarez/typescript.nvim'
+  use "folke/trouble.nvim"
+
+  use "Djancyp/better-comments.nvim"
 
 end)

@@ -1,4 +1,5 @@
 local lsp = require("lsp-zero")
+local trouble = require('trouble')
 
 lsp.preset("recommended")
 
@@ -67,9 +68,28 @@ lsp.on_attach(function(client, bufnr)
   vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
   vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
   vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+
+  -- Lua
+  vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>", opts)
+  vim.keymap.set("n", "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>", opts)
+  vim.keymap.set("n", "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>", opts)
+  vim.keymap.set("n", "<leader>xl", "<cmd>TroubleToggle loclist<cr>", opts)
+  vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>", opts)
+  vim.keymap.set("n", "gR", "<cmd>TroubleToggle lsp_references<cr>", opts)
 end)
 
 lsp.setup()
+
+trouble.setup({
+    icons = false,
+    auto_preview = false,
+    signs = {
+        error = 'E',
+        warning = 'W',
+        hint = 'H',
+        inforomation = 'I'
+    }
+})
 
 vim.diagnostic.config({
     virtual_text = true,
