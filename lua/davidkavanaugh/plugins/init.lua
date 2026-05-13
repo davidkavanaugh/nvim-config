@@ -22,15 +22,12 @@ return {
     "mbbill/undotree",
     "tpope/vim-fugitive",
 
-    -- LSP stack (lsp-zero v1.x API; matches existing after/plugin/lsp.lua)
+    -- LSP + autocompletion (uses Neovim 0.11 native vim.lsp.config API)
     {
-        "VonHeikemen/lsp-zero.nvim",
-        branch = "v1.x",
+        "neovim/nvim-lspconfig",
         dependencies = {
-            -- LSP Support
-            { "neovim/nvim-lspconfig", tag = "v1.8.0" },
-            { "williamboman/mason.nvim",            branch = "v1.x" },
-            { "williamboman/mason-lspconfig.nvim",  branch = "v1.x" },
+            "williamboman/mason.nvim",
+            "williamboman/mason-lspconfig.nvim",
             -- Autocompletion
             "hrsh7th/nvim-cmp",
             "hrsh7th/cmp-buffer",
