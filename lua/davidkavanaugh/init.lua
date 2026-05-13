@@ -1,6 +1,6 @@
 require("davidkavanaugh.set")
 require("davidkavanaugh.remap")
-require("davidkavanaugh.packer")
+require("davidkavanaugh.lazy")
 
 local augroup = vim.api.nvim_create_augroup
 local ThePrimeagenGroup = augroup('ThePrimeagen', {})
