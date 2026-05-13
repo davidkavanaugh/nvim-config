@@ -28,7 +28,7 @@ return {
         branch = "v1.x",
         dependencies = {
             -- LSP Support
-            "neovim/nvim-lspconfig",
+            { "neovim/nvim-lspconfig", tag = "v1.8.0" },
             { "williamboman/mason.nvim",            branch = "v1.x" },
             { "williamboman/mason-lspconfig.nvim",  branch = "v1.x" },
             -- Autocompletion
