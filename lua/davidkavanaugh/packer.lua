@@ -21,7 +21,7 @@ return require('packer').startup(function(use)
 	  end
   })
 
-  use({'nvim-treesitter/nvim-treesitter', run = ':TSUpdate'})
+  use({'nvim-treesitter/nvim-treesitter', branch = 'master', run = ':TSUpdate'})
   use('nvim-treesitter/playground')
   use('theprimeagen/harpoon')
   use('mbbill/undotree')
@@ -29,11 +29,12 @@ return require('packer').startup(function(use)
 
   use {
 	  'VonHeikemen/lsp-zero.nvim',
+	  branch = 'v1.x',
 	  requires = {
 		  -- LSP Support
 		  {'neovim/nvim-lspconfig'},
-		  {'williamboman/mason.nvim'},
-		  {'williamboman/mason-lspconfig.nvim'},
+		  {'williamboman/mason.nvim', branch = 'v1.x'},
+		  {'williamboman/mason-lspconfig.nvim', branch = 'v1.x'},
 
 		  -- Autocompletion
 		  {'hrsh7th/nvim-cmp'},
