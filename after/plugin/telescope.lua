@@ -64,15 +64,22 @@ end
 vim.keymap.set("n", "<leader>f", find_in_file,      { desc = "Find in current file" })
 vim.keymap.set("n", "<leader>F", find_in_all_files, { desc = "Find in all files" })
 
--- Find files by glob/wildcard pattern (e.g., *.lua, src/**/*.ts, **/test_*.py).
--- Uses ripgrep so .gitignore is respected. Empty input = list everything.
+-- Find files by glob/wildcard, live-updating like <leader>F.
+-- Type *.lua, src/**/*.ts, **/test_*.py, etc. and results update on each keystroke.
 vim.keymap.set("n", "<leader>p", function()
-    vim.ui.input({ prompt = "Find files matching glob: ", default = "*" }, function(glob)
-        if not glob or glob == "" then return end
-        builtin.find_files({
-            prompt_title = "Find Files (glob: " .. glob .. ")",
-            find_command = { "rg", "--files", "--hidden", "--glob", glob, "--glob", "!.git" },
-        })
-    end)
-end, { desc = "Find files by glob pattern" })
+    local finders   = require("telescope.finders")
+    local pickers   = require("telescope.pickers")
+    local conf      = require("telescope.config").values
+    local make_entry = require("telescope.make_entry")
+
+    pickers.new({}, {
+        prompt_title = "Find Files (glob)",
+        finder = finders.new_job(function(prompt)
+            if not prompt or prompt == "" then return nil end
+            return { "rg", "--files", "--hidden", "--glob", prompt, "--glob", "!.git" }
+        end, make_entry.gen_from_file({}), nil, nil),
+        previewer = conf.file_previewer({}),
+        sorter = conf.file_sorter({}),
+    }):find()
+end, { desc = "Find files by glob (live)" })
 
