@@ -1,0 +1,70 @@
+-- Run the real GitHub Copilot CLI in a vertical terminal split.
+-- Gives 100% UX parity with the standalone `copilot` CLI - no plugin layer.
+--
+-- <leader>cp   toggle the Copilot CLI side panel
+
+local M = {}
+
+local state = { buf = nil, win = nil, job = nil }
+
+local function open()
+    -- Open a vertical split pinned to the right, ~40% width
+    vim.cmd("botright vsplit")
+    vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.4))
+    state.win = vim.api.nvim_get_current_win()
+
+    if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
+        -- Reuse the existing CLI session
+        vim.api.nvim_win_set_buf(state.win, state.buf)
+    else
+        -- Spin up a fresh CLI session
+        state.job = vim.fn.termopen("copilot", {
+            on_exit = function()
+                state.buf = nil
+                state.job = nil
+            end,
+        })
+        state.buf = vim.api.nvim_get_current_buf()
+        vim.bo[state.buf].filetype = "copilot_cli"
+        vim.bo[state.buf].buflisted = false
+        vim.wo[state.win].number = false
+        vim.wo[state.win].relativenumber = false
+        vim.wo[state.win].signcolumn = "no"
+    end
+
+    vim.cmd("startinsert")
+end
+
+local function close()
+    if state.win and vim.api.nvim_win_is_valid(state.win) then
+        vim.api.nvim_win_close(state.win, true)
+    end
+    state.win = nil
+end
+
+function M.toggle()
+    if state.win and vim.api.nvim_win_is_valid(state.win) then
+        close()
+    else
+        open()
+    end
+end
+
+vim.keymap.set("n", "<leader>cp", M.toggle, { desc = "Toggle Copilot CLI" })
+-- Same toggle from inside the CLI panel (terminal-mode)
+vim.keymap.set("t", "<leader>cp", function()
+    vim.cmd("stopinsert")
+    M.toggle()
+end, { desc = "Toggle Copilot CLI" })
+
+-- Auto-enter insert (terminal) mode whenever you focus the CLI panel
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+    pattern = "*",
+    callback = function()
+        if vim.bo.filetype == "copilot_cli" then
+            vim.cmd("startinsert")
+        end
+    end,
+})
+
+return M

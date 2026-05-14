@@ -85,7 +85,7 @@ return {
         },
         cmd = { "CopilotChat", "CopilotChatToggle", "CopilotChatOpen" },
         keys = {
-            { "<leader>cp", "<cmd>CopilotChatOpen<cr>",        mode = { "n", "v" }, desc = "Copilot chat open" },
+            { "<leader>cC", "<cmd>CopilotChatOpen<cr>",        mode = { "n", "v" }, desc = "Copilot chat (plugin) open" },
             { "<leader>ce", "<cmd>CopilotChatExplain<cr>",     mode = { "n", "v" }, desc = "Copilot explain" },
             { "<leader>cr", "<cmd>CopilotChatReview<cr>",      mode = { "n", "v" }, desc = "Copilot review" },
             { "<leader>cf", "<cmd>CopilotChatFix<cr>",         mode = { "n", "v" }, desc = "Copilot fix" },
