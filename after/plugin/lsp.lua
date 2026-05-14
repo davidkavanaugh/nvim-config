@@ -1,7 +1,26 @@
 -- Mason: package manager for LSPs, formatters, linters
 require("mason").setup()
 require("mason-lspconfig").setup({
-    ensure_installed = { "ts_ls", "eslint", "lua_ls", "rust_analyzer" },
+    ensure_installed = {
+        -- Core
+        "lua_ls",
+        "rust_analyzer",
+        -- Web / TS / JS
+        "ts_ls",
+        "eslint",
+        "html",
+        "cssls",
+        "jsonls",
+        -- .NET / Blazor / Razor / XAML / XML
+        "omnisharp",     -- C# (.cs, .cshtml, .razor)
+        "lemminx",       -- XML / XAML
+        -- Config / infra
+        "yamlls",
+        "bicep",
+        "powershell_es",
+        -- Docs
+        "marksman",      -- Markdown
+    },
     -- mason-lspconfig v2 automatically calls vim.lsp.enable() for each
     -- installed server using configs shipped with nvim-lspconfig.
     automatic_enable = true,

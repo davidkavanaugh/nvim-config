@@ -99,9 +99,15 @@ return {
         opts = {
             model = "claude-opus-4",
             window = { layout = "vertical", width = 0.4 },
+            -- VS Code-style: chat input is always editable, no need to press 'i'
+            auto_insert_mode = true,
+            insert_at_end    = true,
             mappings = {
                 submit_prompt = { normal = "<CR>", insert = "<CR>" },
-                close         = { normal = "<Esc>", insert = "" },
+                -- Esc closes the chat from either mode (VS Code-style).
+                -- If you need to scroll/yank old output, use <C-\><C-n> to
+                -- drop into normal mode without closing.
+                close         = { normal = "<Esc>", insert = "<Esc>" },
                 reset         = { normal = "<C-r>", insert = "<C-r>" },
             },
         },
