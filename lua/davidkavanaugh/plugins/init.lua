@@ -82,7 +82,7 @@ return {
         },
         cmd = { "CopilotChat", "CopilotChatToggle", "CopilotChatOpen" },
         keys = {
-            { "<leader>cc", "<cmd>CopilotChatToggle<cr>",      mode = { "n", "v" }, desc = "Copilot chat toggle" },
+            { "<leader>cp", "<cmd>CopilotChatOpen<cr>",        mode = { "n", "v" }, desc = "Copilot chat open" },
             { "<leader>ce", "<cmd>CopilotChatExplain<cr>",     mode = { "n", "v" }, desc = "Copilot explain" },
             { "<leader>cr", "<cmd>CopilotChatReview<cr>",      mode = { "n", "v" }, desc = "Copilot review" },
             { "<leader>cf", "<cmd>CopilotChatFix<cr>",         mode = { "n", "v" }, desc = "Copilot fix" },
@@ -90,11 +90,17 @@ return {
             { "<leader>ct", "<cmd>CopilotChatTests<cr>",       mode = { "n", "v" }, desc = "Copilot generate tests" },
             { "<leader>cd", "<cmd>CopilotChatDocs<cr>",        mode = { "n", "v" }, desc = "Copilot generate docs" },
             { "<leader>cm", "<cmd>CopilotChatCommit<cr>",      mode = "n",          desc = "Copilot commit message" },
-            { "<leader>cp", "<cmd>CopilotChatPrompts<cr>",     mode = { "n", "v" }, desc = "Copilot prompt picker" },
+            { "<leader>cP", "<cmd>CopilotChatPrompts<cr>",     mode = { "n", "v" }, desc = "Copilot prompt picker" },
+            { "<leader>cM", "<cmd>CopilotChatModels<cr>",      mode = "n",          desc = "Copilot model picker" },
         },
         opts = {
-            model = "gpt-4o",
+            model = "claude-opus-4",
             window = { layout = "vertical", width = 0.4 },
+            mappings = {
+                submit_prompt = { normal = "<CR>", insert = "<CR>" },
+                close         = { normal = "<Esc>", insert = "" },
+                reset         = { normal = "<C-r>", insert = "<C-r>" },
+            },
         },
     },
 }
