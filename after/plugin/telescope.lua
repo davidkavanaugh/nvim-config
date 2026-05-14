@@ -64,3 +64,15 @@ end
 vim.keymap.set("n", "<leader>f", find_in_file,      { desc = "Find in current file" })
 vim.keymap.set("n", "<leader>F", find_in_all_files, { desc = "Find in all files" })
 
+-- Find files by glob/wildcard pattern (e.g., *.lua, src/**/*.ts, **/test_*.py).
+-- Uses ripgrep so .gitignore is respected. Empty input = list everything.
+vim.keymap.set("n", "<leader>pg", function()
+    vim.ui.input({ prompt = "Find files matching glob: ", default = "*" }, function(glob)
+        if not glob or glob == "" then return end
+        builtin.find_files({
+            prompt_title = "Find Files (glob: " .. glob .. ")",
+            find_command = { "rg", "--files", "--hidden", "--glob", glob, "--glob", "!.git" },
+        })
+    end)
+end, { desc = "Find files by glob pattern" })
+
