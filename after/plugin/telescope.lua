@@ -76,7 +76,13 @@ vim.keymap.set("n", "<leader>p", function()
         prompt_title = "Find Files (glob)",
         finder = finders.new_job(function(prompt)
             if not prompt or prompt == "" then return nil end
-            return { "rg", "--files", "--hidden", "--glob", prompt, "--glob", "!.git" }
+            -- If the user didn't include any glob metacharacters, treat the
+            -- input as a substring by wrapping it in *...*. So "foo" becomes
+            -- "*foo*", but "*.lua" / "src/**/*.ts" pass through unchanged.
+            if not prompt:find("[%*%?%[%]{}]") then
+                prompt = "*" .. prompt .. "*"
+            end
+            return { "rg", "--files", "--hidden", "--iglob", prompt, "--glob", "!.git" }
         end, make_entry.gen_from_file({}), nil, nil),
         previewer = conf.file_previewer({}),
         sorter = conf.file_sorter({}),
