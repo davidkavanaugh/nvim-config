@@ -3,6 +3,10 @@ vim.opt.guicursor = ""
 vim.opt.nu = true
 vim.opt.relativenumber = true
 
+-- Reload files when they change on disk (e.g. when the Copilot CLI
+-- checks out a different branch in the side panel)
+vim.opt.autoread = true
+
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
