@@ -48,22 +48,27 @@ vim.keymap.set("n", "<C-p>",      builtin.git_files,                        { de
 vim.keymap.set("n", "<leader>ps", function() lga.grep_word_under_cursor() end, { desc = "Grep word under cursor" })
 
 -- VS Code-style:
---   Ctrl-F          fuzzy-find within current file
---   Ctrl-Shift-F    grep across the project (refinable a la VS Code)
-vim.keymap.set({ "n", "i", "v" }, "<C-f>", function()
-    if vim.fn.mode() ~= "n" then
-        vim.cmd("stopinsert")
-    end
+--   Ctrl-F                       fuzzy-find within current file
+--   Ctrl-Shift-F / <leader>F     grep across the project (refinable a la VS Code)
+--
+-- Note: Most terminals do NOT distinguish Ctrl+Shift+F from Ctrl+F. Windows
+-- Terminal supports it only with "Use Ctrl+Shift+...key" / win32-input-mode
+-- enabled. <leader>F (Space + Shift+F) is the reliable fallback.
+local function find_in_file()
+    if vim.fn.mode() ~= "n" then vim.cmd("stopinsert") end
     builtin.current_buffer_fuzzy_find({
         case_mode = "ignore_case",
         previewer = false,
     })
-end, { desc = "Find in current file" })
+end
 
-vim.keymap.set({ "n", "i", "v" }, "<C-S-f>", function()
-    if vim.fn.mode() ~= "n" then
-        vim.cmd("stopinsert")
-    end
+local function find_in_all_files()
+    if vim.fn.mode() ~= "n" then vim.cmd("stopinsert") end
     telescope.extensions.live_grep_args.live_grep_args()
-end, { desc = "Find in all files" })
+end
+
+vim.keymap.set({ "n", "i", "v" }, "<C-f>",   find_in_file,      { desc = "Find in current file" })
+vim.keymap.set({ "n", "i", "v" }, "<C-S-f>", find_in_all_files, { desc = "Find in all files" })
+-- Reliable fallback that works in every terminal
+vim.keymap.set("n",               "<leader>F", find_in_all_files, { desc = "Find in all files" })
 
