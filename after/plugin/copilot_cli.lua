@@ -108,6 +108,46 @@ local function close()
     -- branch changes still propagate. It will be torn down on job exit.
 end
 
+function M.resize(pct)
+    if not (state.win and vim.api.nvim_win_is_valid(state.win)) then return end
+    if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return end
+
+    local width = math.floor(vim.o.columns * pct)
+    local was_insert = vim.api.nvim_get_mode().mode:sub(1, 1) == "t"
+
+    -- Resize the window in place. The previous implementation closed and
+    -- reopened the window because nvim_win_set_width alone left stale
+    -- wrapped scrollback visible - but the underlying cause was that no
+    -- SIGWINCH was being sent to the PTY, so Ink never repainted. With an
+    -- explicit jobresize the in-place resize works correctly and avoids
+    -- the close/reopen flicker entirely.
+    pcall(vim.api.nvim_win_set_width, state.win, width)
+
+    local function nudge()
+        if not (state.win and vim.api.nvim_win_is_valid(state.win)) then return end
+        if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return end
+        if state.job and state.job > 0 then
+            local w = vim.api.nvim_win_get_width(state.win)
+            local h = vim.api.nvim_win_get_height(state.win)
+            pcall(vim.fn.jobresize, state.job, w, h)
+        end
+        -- Anchor the viewport on Ink's live frame at the bottom of the
+        -- terminal buffer (scrollback above may still show wrapped lines
+        -- from the previous width).
+        local line_count = vim.api.nvim_buf_line_count(state.buf)
+        pcall(vim.api.nvim_win_set_cursor, state.win, { line_count, 0 })
+        pcall(vim.cmd, "redraw!")
+        if was_insert then vim.cmd("startinsert") end
+    end
+
+    -- Send SIGWINCH on the next tick (after the window has settled at the
+    -- new width), then again ~80ms later to catch Ink if it debounced the
+    -- first one during its own paint cycle.
+    vim.schedule(nudge)
+    vim.defer_fn(nudge, 80)
+    vim.defer_fn(nudge, 200)
+end
+
 function M.toggle()
     if state.win and vim.api.nvim_win_is_valid(state.win) then
         close()
@@ -121,6 +161,11 @@ vim.keymap.set("t", "<leader>cp", function()
     vim.cmd("stopinsert")
     M.toggle()
 end, { desc = "Toggle Copilot CLI" })
+
+vim.keymap.set("n", "<M-=>", function() M.resize(0.8) end, { desc = "Copilot CLI: expand to 80%" })
+vim.keymap.set("n", "<M-->", function() M.resize(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
+vim.keymap.set("t", "<M-=>", function() M.resize(0.8) end, { desc = "Copilot CLI: expand to 80%" })
+vim.keymap.set("t", "<M-->", function() M.resize(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
     pattern = "*",
