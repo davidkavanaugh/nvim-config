@@ -1,9 +1,12 @@
 return {
-    -- Telescope
+    -- Telescope (fuzzy finder)
     {
         "nvim-telescope/telescope.nvim",
-        tag = "0.1.0",
-        dependencies = { "nvim-lua/plenary.nvim" },
+        branch = "0.1.x",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "nvim-telescope/telescope-live-grep-args.nvim",
+        },
     },
 
     -- Colorscheme
