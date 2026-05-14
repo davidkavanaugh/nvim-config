@@ -14,6 +14,7 @@ wk.add({
     { "<leader>h",  group = "git hunks" },
     { "<leader>t",  group = "toggle" },
     { "<leader>g",  group = "git" },
+    { "<leader>c",  group = "copilot chat" },
     { "<leader>y",  desc  = "yank to system clipboard" },
     { "<leader>Y",  desc  = "yank line to system clipboard" },
     { "<leader>d",  desc  = "delete to void register" },

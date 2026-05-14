@@ -72,4 +72,29 @@ return {
         "folke/which-key.nvim",
         event = "VeryLazy",
     },
+
+    -- Copilot Chat (VS Code-style chat panel powered by Copilot)
+    {
+        "CopilotC-Nvim/CopilotChat.nvim",
+        dependencies = {
+            "github/copilot.vim",
+            "nvim-lua/plenary.nvim",
+        },
+        cmd = { "CopilotChat", "CopilotChatToggle", "CopilotChatOpen" },
+        keys = {
+            { "<leader>cc", "<cmd>CopilotChatToggle<cr>",      mode = { "n", "v" }, desc = "Copilot chat toggle" },
+            { "<leader>ce", "<cmd>CopilotChatExplain<cr>",     mode = { "n", "v" }, desc = "Copilot explain" },
+            { "<leader>cr", "<cmd>CopilotChatReview<cr>",      mode = { "n", "v" }, desc = "Copilot review" },
+            { "<leader>cf", "<cmd>CopilotChatFix<cr>",         mode = { "n", "v" }, desc = "Copilot fix" },
+            { "<leader>co", "<cmd>CopilotChatOptimize<cr>",    mode = { "n", "v" }, desc = "Copilot optimize" },
+            { "<leader>ct", "<cmd>CopilotChatTests<cr>",       mode = { "n", "v" }, desc = "Copilot generate tests" },
+            { "<leader>cd", "<cmd>CopilotChatDocs<cr>",        mode = { "n", "v" }, desc = "Copilot generate docs" },
+            { "<leader>cm", "<cmd>CopilotChatCommit<cr>",      mode = "n",          desc = "Copilot commit message" },
+            { "<leader>cp", "<cmd>CopilotChatPrompts<cr>",     mode = { "n", "v" }, desc = "Copilot prompt picker" },
+        },
+        opts = {
+            model = "gpt-4o",
+            window = { layout = "vertical", width = 0.4 },
+        },
+    },
 }
