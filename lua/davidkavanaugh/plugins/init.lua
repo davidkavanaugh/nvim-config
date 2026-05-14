@@ -57,4 +57,19 @@ return {
     "jose-elias-alvarez/typescript.nvim",
     "folke/trouble.nvim",
     "Djancyp/better-comments.nvim",
+
+    -- Statusline
+    {
+        "nvim-lualine/lualine.nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+    },
+
+    -- Git signs in the gutter
+    "lewis6991/gitsigns.nvim",
+
+    -- Keymap discovery popup
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+    },
 }
