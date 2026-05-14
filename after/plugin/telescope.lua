@@ -72,6 +72,8 @@ vim.keymap.set("n", "<leader>p", function()
     local conf      = require("telescope.config").values
     local make_entry = require("telescope.make_entry")
 
+    local sorters = require("telescope.sorters")
+
     pickers.new({}, {
         prompt_title = "Find Files (glob)",
         finder = finders.new_job(function(prompt)
@@ -95,7 +97,11 @@ vim.keymap.set("n", "<leader>p", function()
             return { "rg", "--files", "--hidden", "--iglob", prompt, "--glob", "!.git" }
         end, make_entry.gen_from_file({}), nil, nil),
         previewer = conf.file_previewer({}),
-        sorter = conf.file_sorter({}),
+        -- rg already filters by the glob; use a passthrough sorter so telescope
+        -- doesn't re-filter the rg results against the prompt as if it were
+        -- fuzzy text (which would reject everything that doesn't literally
+        -- contain '*', '/', etc.).
+        sorter = sorters.empty(),
     }):find()
 end, { desc = "Find files by glob (live)" })
 
