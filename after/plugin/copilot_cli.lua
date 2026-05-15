@@ -1,7 +1,8 @@
 -- Run the real GitHub Copilot CLI in a vertical terminal split.
 -- Gives 100% UX parity with the standalone `copilot` CLI - no plugin layer.
 --
--- <leader>cp   toggle the Copilot CLI side panel
+-- <leader>cp    toggle the Copilot CLI side panel
+-- <leader>acp   toggle the Agency Copilot CLI side panel
 --
 -- Branch sync:
 --   * CLI inherits nvim's CWD on open, so it starts on the same branch.
@@ -11,7 +12,9 @@
 
 local M = {}
 
-local state = { buf = nil, win = nil, job = nil, head_watcher = nil, head_path = nil }
+local function new_state()
+    return { buf = nil, win = nil, job = nil, head_watcher = nil, head_path = nil }
+end
 
 local function refresh_editor_for_branch_change()
     pcall(vim.cmd, "checktime")
@@ -32,7 +35,7 @@ local function git_head_path()
     return gitdir .. "/HEAD"
 end
 
-local function start_head_watcher()
+local function start_head_watcher(state)
     if state.head_watcher then return end
     local head = git_head_path()
     if not head or vim.fn.filereadable(head) == 0 then return end
@@ -55,7 +58,7 @@ local function start_head_watcher()
     end)
 end
 
-local function stop_head_watcher()
+local function stop_head_watcher(state)
     if state.head_watcher then
         pcall(function() state.head_watcher:stop() end)
         pcall(function() state.head_watcher:close() end)
@@ -63,7 +66,7 @@ local function stop_head_watcher()
     end
 end
 
-local function open()
+local function open(state, cmd, filetype)
     vim.cmd("botright vnew")
     vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.4))
     state.win = vim.api.nvim_get_current_win()
@@ -73,16 +76,16 @@ local function open()
         vim.api.nvim_win_set_buf(state.win, state.buf)
         pcall(vim.api.nvim_buf_delete, empty, { force = true })
     else
-        state.job = vim.fn.termopen("copilot", {
+        state.job = vim.fn.termopen(cmd, {
             cwd = vim.fn.getcwd(),
             on_exit = function()
                 state.buf = nil
                 state.job = nil
-                stop_head_watcher()
+                stop_head_watcher(state)
             end,
         })
         state.buf = vim.api.nvim_get_current_buf()
-        vim.bo[state.buf].filetype  = "copilot_cli"
+        vim.bo[state.buf].filetype  = filetype
         vim.bo[state.buf].buflisted = false
         vim.wo[state.win].number         = false
         vim.wo[state.win].relativenumber = false
@@ -95,11 +98,11 @@ local function open()
         })
     end
 
-    start_head_watcher()
+    start_head_watcher(state)
     vim.cmd("startinsert")
 end
 
-local function close()
+local function close(state)
     if state.win and vim.api.nvim_win_is_valid(state.win) then
         vim.api.nvim_win_close(state.win, true)
     end
@@ -108,7 +111,7 @@ local function close()
     -- branch changes still propagate. It will be torn down on job exit.
 end
 
-function M.resize(pct)
+local function resize_state(state, pct)
     if not (state.win and vim.api.nvim_win_is_valid(state.win)) then return end
     if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return end
 
@@ -148,29 +151,63 @@ function M.resize(pct)
     vim.defer_fn(nudge, 200)
 end
 
-function M.toggle()
-    if state.win and vim.api.nvim_win_is_valid(state.win) then
-        close()
+local function make_panel(opts)
+    local state = new_state()
+    local panel = {}
+
+    function panel.toggle()
+        if state.win and vim.api.nvim_win_is_valid(state.win) then
+            close(state)
+        else
+            open(state, opts.cmd, opts.filetype)
+        end
+    end
+
+    function panel.resize(pct)
+        resize_state(state, pct)
+    end
+
+    panel._state = state
+    return panel
+end
+
+M.copilot = make_panel({ cmd = "copilot", filetype = "copilot_cli" })
+M.agency  = make_panel({ cmd = "agency copilot", filetype = "agency_copilot_cli" })
+
+-- Back-compat: top-level resize/toggle drive the Copilot CLI panel.
+M.toggle = M.copilot.toggle
+M.resize = M.copilot.resize
+
+vim.keymap.set("n", "<leader>cp", M.copilot.toggle, { desc = "Toggle Copilot CLI" })
+vim.keymap.set("t", "<leader>cp", function()
+    vim.cmd("stopinsert")
+    M.copilot.toggle()
+end, { desc = "Toggle Copilot CLI" })
+
+vim.keymap.set("n", "<leader>acp", M.agency.toggle, { desc = "Toggle Agency Copilot CLI" })
+vim.keymap.set("t", "<leader>acp", function()
+    vim.cmd("stopinsert")
+    M.agency.toggle()
+end, { desc = "Toggle Agency Copilot CLI" })
+
+local function resize_active(pct)
+    if M.agency._state.win and vim.api.nvim_win_is_valid(M.agency._state.win) then
+        M.agency.resize(pct)
     else
-        open()
+        M.copilot.resize(pct)
     end
 end
 
-vim.keymap.set("n", "<leader>cp", M.toggle, { desc = "Toggle Copilot CLI" })
-vim.keymap.set("t", "<leader>cp", function()
-    vim.cmd("stopinsert")
-    M.toggle()
-end, { desc = "Toggle Copilot CLI" })
-
-vim.keymap.set("n", "<M-=>", function() M.resize(0.8) end, { desc = "Copilot CLI: expand to 80%" })
-vim.keymap.set("n", "<M-->", function() M.resize(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
-vim.keymap.set("t", "<M-=>", function() M.resize(0.8) end, { desc = "Copilot CLI: expand to 80%" })
-vim.keymap.set("t", "<M-->", function() M.resize(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
+vim.keymap.set("n", "<M-=>", function() resize_active(0.8) end, { desc = "Copilot CLI: expand to 80%" })
+vim.keymap.set("n", "<M-->", function() resize_active(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
+vim.keymap.set("t", "<M-=>", function() resize_active(0.8) end, { desc = "Copilot CLI: expand to 80%" })
+vim.keymap.set("t", "<M-->", function() resize_active(0.4) end, { desc = "Copilot CLI: shrink to 40%" })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
     pattern = "*",
     callback = function()
-        if vim.bo.filetype == "copilot_cli" then
+        local ft = vim.bo.filetype
+        if ft == "copilot_cli" or ft == "agency_copilot_cli" then
             vim.cmd("startinsert")
         end
     end,
