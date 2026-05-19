@@ -70,6 +70,8 @@ local function open(state, cmd, filetype)
     vim.cmd("botright vnew")
     vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.4))
     state.win = vim.api.nvim_get_current_win()
+    -- Keep the panel pinned to the right at its current width.
+    vim.wo[state.win].winfixwidth = true
 
     if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
         local empty = vim.api.nvim_get_current_buf()
@@ -209,6 +211,61 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
         local ft = vim.bo.filetype
         if ft == "copilot_cli" or ft == "agency_copilot_cli" then
             vim.cmd("startinsert")
+        end
+    end,
+})
+
+-- Keep the Copilot CLI panel pinned to the far right: if any other buffer
+-- ends up displayed in the panel window (e.g. `:edit somefile` issued while
+-- focus is in the panel, or a picker that targeted the wrong window), shove
+-- it into a window to the left and restore the terminal in the panel slot.
+local function find_main_win(panel_win)
+    for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if w ~= panel_win and vim.api.nvim_win_get_config(w).relative == "" then
+            local b = vim.api.nvim_win_get_buf(w)
+            local bt = vim.bo[b].buftype
+            local ft = vim.bo[b].filetype
+            if bt == "" and ft ~= "NvimTree" and ft ~= "neo-tree" then
+                return w
+            end
+        end
+    end
+    return nil
+end
+
+local function relocate_intruder(state, intruder_buf)
+    if not (state.win and vim.api.nvim_win_is_valid(state.win)) then return end
+    if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return end
+    if intruder_buf == state.buf then return end
+
+    -- Restore the terminal buffer in the panel window.
+    pcall(vim.api.nvim_win_set_buf, state.win, state.buf)
+
+    -- Send the file buffer to a window on the left, creating one if needed.
+    local target = find_main_win(state.win)
+    if target then
+        vim.api.nvim_win_set_buf(target, intruder_buf)
+        vim.api.nvim_set_current_win(target)
+    else
+        local prev = vim.api.nvim_get_current_win()
+        vim.api.nvim_set_current_win(state.win)
+        vim.cmd("leftabove vsplit")
+        vim.api.nvim_win_set_buf(0, intruder_buf)
+        if not vim.api.nvim_win_is_valid(prev) then prev = 0 end
+    end
+end
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+        if ft == "copilot_cli" or ft == "agency_copilot_cli" then return end
+        for _, panel in ipairs({ M.copilot, M.agency }) do
+            local state = panel._state
+            if state.win and vim.api.nvim_win_is_valid(state.win)
+                and vim.api.nvim_win_get_buf(state.win) == args.buf then
+                vim.schedule(function() relocate_intruder(state, args.buf) end)
+                return
+            end
         end
     end,
 })

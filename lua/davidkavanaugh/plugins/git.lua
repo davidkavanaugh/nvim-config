@@ -12,7 +12,6 @@ return {
         },
         cmd = { "Neogit" },
         keys = {
-            { "<leader>git", "<cmd>Neogit<cr>",            desc = "Git: open status panel" },
             { "<leader>gc",  "<cmd>Neogit commit<cr>",     desc = "Git: commit" },
             { "<leader>gp",  "<cmd>Neogit push<cr>",       desc = "Git: push" },
             { "<leader>gP",  "<cmd>Neogit pull<cr>",       desc = "Git: pull" },
